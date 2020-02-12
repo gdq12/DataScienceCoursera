@@ -1,0 +1,140 @@
+---
+title: "Basic Inferential Data Analysis: Tooth Growth"
+author: "Gloria Q"
+date: "2/2/2020"
+output: pdf_document
+geometry: margin=1.4cm
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Introduction
+------------
+
+This assignment was conducted as a requirement for the John Hopkins *Statistical Inference* course offered via Coursera, with the intent to perform exploratory and statistical analysis on the ToothGrowth data set in the datasets R package. 
+
+Basic summary of data
+----------------------
+
+Importing data and understand general structure of data set: 
+
+```{r importData, echo=TRUE}
+#load the data set to R and save it into a data frame variable 
+library(datasets)
+ToothGrowth <- ToothGrowth
+#to read background info on the data set, will appear in Help window of Rstudio
+?ToothGrowth
+#to get a first original picture of the data set
+str(ToothGrowth)
+#to get a feel of the number distribtuion in ToothGrowth$len
+summary(ToothGrowth$len)
+# to get an idea on the different doses administered
+table(ToothGrowth$dose)
+```
+
+Based on the background info provided by the help viewer and a quick look at the data set structure, this data set consists of odontoblast (cells involved in tooth growth) length quantification in 60 guinea pigs who were administered vitamin C (VitC) at various doses (0.5, 1 or 2 $mg/day$) via orange juice (OJ) or ascorbic acid (VC). This information indicates that there are 6 test groups in this data set, 3 groups for each dose times 2 different sources of VitC. The next interesting point to examine would be how VitC dosage versus source impacts tooth length.
+
+Basic exploratory analysis 
+--------------------------
+
+The next step is to visualize tooth length distribution and the impact VitC with various doses plays on it: 
+
+```{r distSub, echo=TRUE, message=FALSE}
+#load necessary package to R
+library(dplyr); library(knitr); library(kableExtra)
+#perform a summary statistic (mean and variance) for each group on tooth length
+Stats <- ToothGrowth %>% group_by(supp, dose) %>% summarize(meanLength=mean(len), varLength=var(len))
+kable(Stats, "latex", booktabs=T) %>% kable_styling(latex_options = "striped", position="center")
+```
+
+```{r Distribution, echo=TRUE, fig.height=3}
+library(ggplot2)
+#plot VitC and dosage influence on tooth growth 
+tBox <- ggplot(ToothGrowth, aes(x=factor(dose), y=len, fill=factor(dose))) +
+geom_boxplot() + facet_grid(. ~ supp) + labs(x="VitC dosage mg/day", y="Tooth
+length", title="Tooth length by supplement and dose") + theme(plot.title = element_text(hjust=0.5))
+print(tBox)
+```
+
+
+Based on summary statistics and graph above, there are different degrees of impact VitC source has on tooth length which appears to be dependent on dosage amount. To better evaluate this, more in depth hypothesis testing on these 6 groups will be conducted. 
+
+Statistical Analysis
+--------------------
+
+Hypothesis t-testing will be used here for the small $n$ for each group and it will be assumed that the guinea pigs used for data collection originated from a normal population and were randomly selected for each of the test groups. 
+
+1) Vitc source comparison for each dose: $H_{o}: \mu_{OJ}=\mu_{VC}$ and $H_{\alpha}: \mu_{OJ}>\mu_{VC}$ is tested for each group per dose. The summary table below: 
+
+```{r test1, echo=TRUE}
+#load necessary packages to R
+library(tidyr); library(broom)
+#t-test OJ vs VC for each dose 
+stats <- ToothGrowth %>% group_by(dose) %>% do(tidy(t.test(len ~ supp, 
+paired=FALSE, var.equal=FALSE, conf.level=0.95, data=.))) %>% rename(OJmean = 
+estimate1,VCmean = estimate2,tStat = statistic,df = parameter)
+#print only necessary columns: 
+kable(stats[,c(1,3:9)], "latex", booktabs=T, align="c") %>% 
+kable_styling(latex_options = "striped", position="center")
+```
+
+For comparing tooth length OJ vs VC for 0.5 and 1 $mg/day$ dose, the $h_{o}$ is rejected, but not for 2 $mg/day$. For this comparison, the 0.5 and 1 $mg/day$ dose play a role in tooth length when comaring VitC sources. 
+
+2) VitC source comparison: $H_{o}: \mu_{OJ}=\mu_{VC}$ and $H_{\alpha}: \mu_{OJ}>\mu_{VC}$ is tested. R code as follows:  
+
+```{r test2, echo=TRUE}
+#t-test OJ vs VC 
+suppStat <- ToothGrowth %>% do(tidy(t.test(len ~ supp, 
+paired=FALSE, var.equal=FALSE, conf.level=0.95, data=.))) %>% rename(OJmean = 
+estimate1,VCmean = estimate2,tStat = statistic,df = parameter)
+#print only necessary columns
+kable(suppStat[,c(2:8)], "latex", booktabs=T, align="c") %>% 
+kable_styling(latex_options = "striped", position="center")
+```
+
+Based on the p-value here, the $H_{o}$ cannot be rejected, there it cannot be assumed that VitC source alone plays a role in tooth length. 
+
+```{r test3, echo=FALSE, results="hide"}
+#subset ToothGrowth by dose
+sDose <- ToothGrowth$len[ToothGrowth$dose==0.5]
+mDose <- ToothGrowth$len[ToothGrowth$dose==1]
+lDose <- ToothGrowth$len[ToothGrowth$dose==2]
+#t-test sDose(0.5) vs mDose(1)
+statsSM <- c(meanS=mean(sDose), meanM=mean(mDose), stat=t.test(mDose, sDose, 
+paired=F, var.equal=F)$statistic, pVal=t.test(mDose, sDose, paired=F,
+var.equal=F)$p.value, CI=t.test(mDose, sDose, paired=F, var.equal=F)$conf.int)
+statsSM
+#t-test mDose(1) vs lDose(2)
+statsML <- c(meanM=mean(mDose), meanL=mean(lDose), stat=t.test(lDose, mDose,
+paired=F, var.equal=F)$statistic, pVal=t.test(lDose, mDose, paired=F,
+var.equal=F)$p.value, CI=t.test(lDose, mDose, paired=F, var.equal=F)$conf.int)
+statsML
+#t-test sDose(0.5) vs lDose(2)
+statsSL <- c(meanS=mean(sDose), meanL=mean(lDose), stat=t.test(lDose, sDose,
+paired=F, var.equal=F)$statistic, pVal=t.test(lDose, sDose, paired=F, 
+var.equal=F)$p.value, CI=t.test(lDose, sDose, paired=F, var.equal=F)$conf.int)
+statsSL
+
+```
+4) Validate the correct p-value was used for hypothesis testing: 
+
+```{r pValue, echo=TRUE}
+#collect all previously calculate p-values into 1 vector then adjust using BH method
+pVal <- c(pull(stats, var=p.value), pull(suppStat, var=p.value))
+pValadj <- p.adjust(pVal, method="BH"); pTable <- rbind(OriginalpVal=pVal, NewPval=pValadj)
+colnames(pTable) <- c("0.5", "1", "2", "OJ vs VC")
+#print table
+kable(pTable, "latex", booktabs=T, align="c") %>% kable_styling(latex_options = "striped", position="c")
+```
+
+The number of test that fail to reject the null hypothesis prior to the correct is the same as post-correction. 
+
+Conclusion
+----------
+
+Based on the different hypothesis testing conducted and those that were able to reject $H_{o}$, VitC source alone does not have an effect on tooth length, but the lower dosages, 0.5 and 1 $md/day$, has an effect on tooth length. The effect of dosage alone wasn't tested because it seemed repetitive, takes up too much space in the report without an appendix and it appeared evident in the exploratory analysis already that there would be an obvious impact of dosage on tooth length. 
+
+
+
