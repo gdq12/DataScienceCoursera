@@ -1,0 +1,38 @@
+plot2 <- function(){
+
+#package & file check-----  
+##check for required packages/install if needed/load into R
+if(!"dplyr" %in% installed.packages()){
+  warning("dplyr required, installing now")
+  install.packages("dplyr")}
+library(dplyr)  
+  
+##verify that RDS files are in current working directory
+if(!"Source_Classification_Code.rds" %in% dir()){
+  warning("no RDS files in current directory, changing working directory")}
+  
+##download RDS files once in correct directory 
+  NEI <- readRDS("summarySCC_PM25.rds")  
+  
+#total Baltimore Emissions calculation------
+##calculate total emissions from all sources for every year 
+BaltE <- subset(NEI, fips=="24510")  
+BaltTotalE <- BaltE %>% group_by(year) %>% summarise(Emissions=sum(Emissions))  
+
+#graph production------
+##open PNG device
+png(file="plot2.png")
+
+##build desired plot with customized x and y axes
+plot(BaltTotalE, pch=19, ylim=c(0, 4000), xaxt="n", ylab="Emissions (in tons)", main="Total PM2.5 Baltimore Emissions")
+axis(1, at=c(1999,2002,2005,2008))
+
+##calculate regression between year and emissions 
+BaltTrend <- lm(BaltTotalE$Emissions ~ BaltTotalE$year, BaltTotalE)
+
+##add regression line onto graph to visually emphasize relationship between year and emissions
+abline(BaltTrend, lwd=2)
+
+##close PNG device so graph can be saved and exported into working directory
+dev.off()    
+}
