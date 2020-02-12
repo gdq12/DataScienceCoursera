@@ -1,0 +1,498 @@
+---
+title: "Inferential Statistics"
+date: "Jan 2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Simple probability rules
+------------------------
+
+```{r ProbChart, echo=FALSE}
+library(knitr)
+library(kableExtra)
+library(ggplot2)
+library(latex2exp)
+df <- data.frame(Def=c("events with opposite outcomes", "both independent events occuring", "at least 1 occur of mutually exclusive", "at least 1 occur non-mutually exclusive", "conditional probs: prob A occurs if B occured"), Form=c('$P(A)+P(B)=1$', '$P(A \\& B)=P(A)*P(B)$', '$P(A \\cup B)=P(A)+P(B)$', '$P(A \\cup B)=P(A)+P(B)-P(A \\& B)$', '$P(A \\mid B)= \\frac {P(A \\& B)}{P(B)}$'))
+colnames(df) <- c("Definition", "Formula")
+kable(df, booktabs=TRUE, escape=FALSE, caption=c("Probabilities"),  align="c") %>% kable_styling(latex_options=c("striped", "hold_position"), full_width=FALSE, position="center")
+```
+
+
+Bayes' Rule application in medical diagnostics
+----------------------------------------------
+
+```{r BayesChart1, echo=FALSE}
+df <- data.frame(Acc=c("sensitivity", "specificity"), Rate=c('$P(+ \\mid D)$', '$P(- \\mid \\sim D)$'), Bay1=c('$+ predVal$', '$- predVal$'), BayForm=c('$P(D \\mid +)=\\frac {P(+ \\mid D)P(D)}{P(+ \\mid D)P(D) + P(+ \\mid \\sim D)P(\\sim D)}$', '$P(\\sim D \\mid -)=\\frac {P(- \\mid \\sim D)P(\\sim D)}{P(- \\mid \\sim D)P(\\sim D)+P(- \\mid D)P(D)}$'))
+colnames(df) <- c("","","","")
+kable(df, booktabs=TRUE, escape=FALSE,  align="c") %>% kable_styling(latex_options=c("striped", "hold_position"), full_width=FALSE, position="center") %>% add_header_above(c("Accuracy Rates"=2, "Bayer's Formula"=2)) %>% footnote(number=c("prevalence: (D) event patient has disease; (~D) event patient doesnt have disease", '($+$) positive test result; ($-$) negative test result'))
+```
+
+
+```{r BayesChart2, echo=F}
+df <- data.frame(DLRform=c('$DLR_{+}=\\frac {P(+ \\mid D)}{P(+ \\mid \\sim D)}$', '$DLR_{-}=\\frac {P(- \\mid D)}{P(- \\mid \\sim D)}$'), Odd1=c("data w/disease present", "data w/disease not present"), Odd2=c('$\\frac {P(D \\mid +)}{P(\\sim D \\mid +)}=(\\frac {P(+ \\mid D)}{P(+ \\mid \\sim D)})(\\frac {P(D)}{P(\\sim D)})$', '$\\frac {P(D \\mid -)}{P(\\sim D \\mid -)}=(\\frac {P(- \\mid D)}{P(- \\mid \\sim D)}(\\frac {P(D)}{P(\\sim D)})$'))
+colnames(df) <- c("","","")
+kable(df, booktabs=TRUE, escape=FALSE,  align="c") %>% kable_styling(latex_options=c("striped", "hold_position"), full_width=FALSE, position="center") %>% add_header_above(c("Diagnostic Likelihood Ratios"=1, "Pre/Post test odds w/DLR (Post=DLR*Pre)"=2))
+```
+
++ $+ predVal$:prob patients has disease given positive test result
++ $- predVal$:prob patient doesnt have disease given negative test value
++ $DLR_{+}$=large usually
++ $DLR_{-}$=small usually 
++ data w/ disease: post >  pre
++ data wo disease: post < pre
+
+Elements characterizing a distribution
+--------------------------------------
+
+```{r, echo=FALSE}
+df <- data.frame(Abbreviations=c("E(X)", "p(x)", '$n$', '$\\mu$', '$\\overline{X}$', '$\\sigma^2$', '$s^2$', '$\\sigma$', "s", '$\\lambda$', "t", "df"), Meaning=c("expected value of iid (population mean)", "probability of discrete variable (PMF)", "sample size", "population mean", "sample mean", "population variance", "sample variance", "population standard deviation", "sample standard deviation", "mean/variance poisson distribution", "total monitoriing time poisson", "degrees of freedom (n-1)"))
+kable(df, booktabs=TRUE, escape=FALSE,  align="c") %>% kable_styling(latex_options="striped", full_width=FALSE, position="c")
+```
+
+```{r, echo=FALSE}
+df <- data.frame(Definition=c("population mean", "variance", "standard deviation", "variance of sample mean", "standard error of mean", "standard error of sample mean"), Formula=c('$E(X)=\\sum x*p(x)$', '$Var(x)=E(x^2)-E(x)^2$', '$SD=\\sqrt(variance)$', '$Var(\\overline{X})=\\frac{\\sigma^2}{n}$', '$SEM=\\frac{\\sigma}{\\sqrt{n}}$', '$SE(\\overline{X})=\\frac{s}{\\sqrt{n}}$'))
+kable(df, booktabs=TRUE, escape=FALSE,  align="c") %>% kable_styling(latex_options="striped", full_width=FALSE, position="c") %>% footnote(number="increase in variance/SD= increase in spread, vice versa")
+```
+
+Useful Rcommands: 
+
++ pbinom(x, size=n, prob=0.0, lower.tail=T/F): calcs prob of getting **greater (F)** or **less (T)** than x
+
++ qnorm(percent, mean=mu, sd=sigma, lower.tail=T/F): calc the xVAl on the quantile/percent from the **left (T)** or the **right (F)** end of the distribution curve, also calcs quantile associated with test (th%) when all other parameters left as default
+
++ pnorm(x, mean=mu, sd=sigma, lower.tail=T/F): calcs prob that choose a random variable **less than (T)** or **more than (F)** x or with quantile value gives pVal when alternative mean is **less than (T)** or **greater than (F)** the hypo mean
+
++ rnorm(n, mean=mu, sd=sigma): generate desired number of random normal samples with specific $\mu$ and $\sigma$
+
++ ppois(x, lamda=rate x t, lower.tail=T/F): calcs prob of getting a value **less than (T)** or **greater than (F)** than x
+
++ binom.test(probability, n)$conf.int: calcs the 95% CI without relying on CLT, better to use when have small n
+
++ poisson.test(x, t)$conf: calcs 95% CI for rate related poisson
+
++ qt(percentage, df): calc t-qunatile when given percent as probability and degrees of freedom
+
++ t.test(V2, V1, diffV, paired=T/F, var.equal=T/F)$conf: calc CI for t test, for paired and independent variables, variations on use specified below. without varConf, then print t,df,pValue,95%CI,sample mean estimate
+
++ qt(q=quantile, df=df, lower,tail=T/F): distribution function of t distribution, quantile would be the t-stat, calc p-value according to the alternative mean being **greater than (F)** or **less than (T)** the mean hypothesis
+
++ power.t.test(power, delta, sd, type, alt): calculates power even with missing values, specify specific need with $power,delta,n etc. more details below
+
++ quantile(vector, c(0.025, 0.975", "sample(vector, vectorLength * BootstrapNum, replace=TRUE): caclulates the variable values at the indicated th% values, another way to calculate CI
+
++ sample(vector, vLength * bootstrapNum, replace=T): resamples data points from vector by a specified number of time (vector length x bootstrapNum) and saves its in a single longer vector. Used in bootstraping and permutations
+    
+Types of distributions 
+----------------------
+
+a. Bernoulli's distrbution: 
+    
++ PMF of Binomial random varialbles: $P(X=x)=\binom{n}{x}p^{x}(1-p)^{n-x}$
+        
++ calculation in R:
+            
+    1. choose(n, x) * p^x * (1-p)^(n-x) + choose(n, x).....
+        
+        + n=total number of trials, x=target/desired number of successes
+            
+        + at least $\Rightarrow$ repeat choose() calc from x 'til n
+            
+    2. **pbinom(x-1, size=n, prob=p, lower.tail=TRUE/FALSE)**
+        
+        + at least $\Rightarrow$ lower.tail=FALSE
+
+b. Normal/Gaussian distribution: 
+
++ normally distributed random variable characterized as:  $X \sim N (\mu,\sigma^{2})$ **== sampleSize(mean,variance)**
+    
++ standard normal distribution (Z): when $\mu=0$ and $\sigma=1$ --> $Z \sim N (0,1)$
+    
++ $Z=\frac{X- \mu}{\sigma}$; $X=\mu + \sigma Z$    
+
+```{r Distribution, echo=FALSE, fig.height=3}
+ggplot(data.frame(x = c(-4, 4)), aes(x = x)) + stat_function(fun=dnorm) + stat_function(fun=dnorm, xlim=c(-1,1), geom="area", fill="red") + stat_function(fun=dnorm, xlim=c(-2,-1), geom="area", fill="orange") + stat_function(fun=dnorm, xlim=c(1,2), geom="area", fill="orange") + stat_function(fun=dnorm, xlim=c(-3,-2), geom="area", fill="yellow") + stat_function(fun=dnorm, xlim=c(2,3), geom="area", fill="yellow") + annotate("text", x=2.5, y=0.340, label="0=µ(pop. mean)") + annotate("text", x=2.5, y=0.3, label= "±1(red)=68% of data") + annotate("text", x=2.5, y=0.260, label="±2(orange)=95% of data") + annotate("text", x=2.5, y=0.220, label="±3(yellow)=99% of data") + labs(title="Standard normal distribution-Memorize", x="standard deviations from µ", y="") + theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r echo=FALSE}
+SD <- cbind(c(-2.33, -1.96, -1.645, -1.28), c(1, 2.5, 5, 10), c(1.28, 1.645, 1.96, 2.33), c(90, 95, 97.5, 99))
+colnames(SD) <- c("Z(SD)", "th %", "Z(SD)", "th %")
+kable(SD, caption="SD and percentile of normal distribution") %>% kable_styling(bootstrap_options=c("striped", "hold_position"), full_width=F, position="c") %>% footnote(number="in R: qnorm(th %) --> Z")
+```
+
++ when given $\mu$, $\sigma$ and q(th%quantile), can calculate the variable of that quantile using: 
+
+    + $\mu + \sigma Z$
+    
+    + qnorm(q, $\mu$, $\sigma$, lower.tail=TRUE)
+    
++ to calculate probability of picking a random variable....
+
+    + $Z=\frac{X- \mu}{\sigma}$ $\Rightarrow$ ±1/2/3 SD(Z) $\Rightarrow$ $\frac{(68/95/99)}{2}=x$ $\Rightarrow$ 50±x(less or greater)=probability
+
+    + pnorm(indicateVal or q, $\mu$, $\sigma$, lower.tail=TRUE/FALSE)
+    
+        + lower.tail=TRUE(less than) or FALSE (greater than)
+        
+    
+c. Poisson distribution
+
++ useful for rates: $X \sim Poisson(\lambda t)$ and $\lambda = E[\frac{X}{t}]$
+    
+    + $\lambda$ = rate, $t$ = total time
+        
+    + ppois(indicateVal, lamda=rate*t, lower.tail=TRUE/FALSE)
+        
++ example: num of ppl at bus stop is Poisson with a mean of 2.5/hr. Survey for 4 hours, prob that 3 or **fewer** people show up for the whole time?
+        
+    + Rcode: ppois(3, lambda=2.5*4, lower.tail=TRUE) --> 0.01033605
+        
++ Poisson approximates binomial when $n$ is large and $p$ is small 
+    
+    + $\lambda = np$ rather than rate*t
+        
+    + ppois() and pbinom() results in very close probabilities
+    
+    
+Central Limit Theorem (CLT)
+---------------------------
+
+a. when variables are iid and n is large, they become a standard normal distibution where **N(0,1)**, then: $\bar{X} \sim N(\mu, \frac{\sigma ^{2}}{\sqrt{n}})$ --> convergence to normality
+    
+$$\frac{\bar{X}-\mu}{\frac{\sigma}{\sqrt{n}}}$$
+    
+b. convergence to normality poor when sample proportion is close to 0 or 1 (in formula replace means with proportions) or when $n$ is small 
+
+c. Z-stat under standard normal distribution (N(0,1)): $Z=\frac{\bar{X}-\mu}{\frac{\sigma}{\sqrt{n}}}$
+
+
+Confidence intervals
+--------------------
+    
++ default: 95% for $\mu$ is $\bar{X} \pm 2 (\frac{\sigma}{\sqrt{n}})$ 
+
++ CI for normal distribution: 
+        
+    + calc quantile(Z) for CI (example 90%): $\frac{100-90}{2}+90$ $\Rightarrow$ qnorm(0.95)=1.644854
+        
+    + calc CI with Z-stat: $\bar{X} \pm ZxSE(\bar{X})$
+    
+        + Rcode: $\bar{X}$ + c(-1,1) x qnorm(0.975) x sd(X)/sqrt(length(X))
+        
+        
++ CI for binomial: $\bar{p} \pm Z(\sqrt{\frac{p(1-p)}{n}})$ 
+        
+    + Wald: maximize to get largest CI ($p=\frac{1}{2}$): $\bar{p} \pm \frac{1}{\sqrt{n}}$ (formula to use without R)
+        
+    + Rcode: $\bar{p} + c(-1,1) x qnorm(0.975) x sqrt(\bar{p}x(1 - \bar{p})/n)$
+            
+    + Rcode: binom.test(numSuccesses, totalTrials)$conf.int 
+            
++ CI for poisson: $\hat{\lambda} \pm Z \sqrt{\frac{\hat{\lambda}}{t}}$ when $\hat{\lambda}=\frac{X}{t}$
+    
+    + Rcode: numSuccesses/totalTime + c(-1,1) x qnorm(0.975) x sqrt((numSuccess/totalTime)/totalTime) 
+            
+    + Rcode: poisson.test(numSuccesses, totalTime)$conf
+    
+t Confidence Intervals
+----------------------
+
+a. Student t-test (depends on small $n$): $t=\frac{\overline{x} - \mu}{\frac{s}{\sqrt{n}}}$
+    
++ t-quantile in R: qt(percent, df)
+    
++ t distribution (larger tails, lower mean peak) --> increase $n$ --> t-intervals become Z-intervals (higher mean peak and smaller tails)
+    
+b. CI with t-stat: $\overline{X} \pm t_{(n-1)} * SE(\overline{X})$
+
+c. CI for paired observations (paired t-Test):
+ 
+    + $\overline{X}$= difference between the observations (stored as a vector)
+        
+    + Rcode: mean($\overline{X}$) + c(-1, 1) x qt(0.975, df) x sd($\overline{X}$)/sqrt($n$)
+        
+    + Rcode: t.test(diffVector)$conf.int
+        
+    + Rcode: t.test(Ob2Vector, Ob1Vector, paired=TRUE)$conf.int
+        
+    + Rcode(paired observations in single vector): t.test(ObVector ~ I(relevel(categoryVector, 2ndObCategory)), paired=TRUE, data=dataFrame)$conf.test
+    
+d. CI for 2 independent variables with pooled variance (sp)  
+
++ $sp=\sqrt(\frac{(df_{x}s_{x}^2)+(df_{y}s_{y}^2)}{n_{x}+n_{y}-2})$; $\mu_{y} - \mu_{x} \pm t_{n_{x}+n_{y}-2} * sp  * \sqrt(\frac{1}{n_{x}}+\frac{1}{n_{y}})$   
+
++ Rcode: 
+    
+    1) sp <- nx(times)sx^2 + ny(times)sy^2
+        
+    2) ns <- nx+ny-2
+        
+    3) sp <- sqrt(sp/ns) OR sp <- sqrt((dfx*var(VectorX)+dfy*var(VectorY))/18)
+        
+    4) muy - mux + c(-1,1) * qt(0.975, ns) * sp*sqrt(1/nx+1/ny)
+        
+**when interval ranges from neg. to pos. (aka contain 0), cant rule out that means of 2 groups are equal**  
+
++ Rcode: t.test(Vector2, Vector1, paired=FALSE, var.equal=TRUE)$conf
+
+e.  CI for 2 independent variables with unequal variance 
+    
++ $df = \frac{(\frac{s_{x}^2}{n_{x}}+\frac{s_{y}^2}{n_{y}})^2}{\frac{(\frac{s_{x}^2}{n_{x}})^2}{n_{x}-1}+\frac{(\frac{s_{y}^2}{n_{y}})^2}{n_{y}-1}}$; $SE=\sqrt(\frac{s_{x}^2}{n_{x}}+\frac{s_{y}^2}{n_{y}})$; $\mu_{y} - \mu_{x} \pm t_{df} * SE$
+
++ Rcode: 
+
+    1) num <- (sx^2/nx + sy^2/ny)^2
+    
+    2) den <- sx^4/nx^2/nx-1 + sy^4/ny^2/ny-1
+    
+    3) df <- num/def
+    
+    4) muy-mux + c(-1,1) x qt(0.975, df) x sqrt(sx^2/nx+sy^2/ny)
+    
++ Rcode: t.test(Vector2, Vector1, paired=FALSE, var.equal=FALSE)$conf   
+
+Hypothesis Testing
+------------------
+
++ type I error: reject true $H_{o}$; $\alpha=0.05$
+
++ $C = \mu_{Ho} + 1.645 * \frac{s}{\sqrt{n}}$; $Z=\frac{\overline{X}-\mu_{Ho}}{\frac{s}{\sqrt{n}}}$
+
+
++ when $H_{\alpha}: \mu > \mu_{o}$ then......
+
+    + $H_{o} : \mu = C$ and $H_{\alpha} : \mu > C$
+
+    + OR use Z (for large $n$): if test statistic $Z > Z_{1-\alpha}(1.645)$ then reject $H_{o}$
+
+
++ when $H_{\alpha}: \mu < \mu_{o}$ then $Z < Z_{\alpha}(-1.645)$ then reject $H_{o}$ if thats the case
+
+
+```{r onTail, echo=FALSE, warning=FALSE, fig.height=3}
+library(gridExtra)
+oneT <-ggplot(data.frame(x = c(-4, 4)), aes(x = x)) + stat_function(fun=dnorm) + stat_function(fun=dnorm, xlim=c(1.645, 4), geom="area", fill="red") + stat_function(fun=dnorm, xlim=c(-4, -1.645), geom="area", fill="green") + annotate("text", x=2.5, y=0.34, label=TeX("$H_{\\alpha} =\\mu_{\\alpha} > \\mu_{o}$")) + annotate("text", x=2.5, y=0.30, label="95th%(1.645)") + annotate("text", x=2.5, y=0.260, label=TeX("reject if $H_{\\alpha} (\\mu) > C$")) + annotate("text", x=-2.5, y=0.34, label=TeX("$H_{\\alpha} =\\mu_{\\alpha} < \\mu_{o}$")) + annotate("text", x=-2.5, y=0.30, label="5th%(-1.645)") + annotate("text", x=-2.5, y=0.260, label=TeX("reject if $H_{\\alpha} (\\mu) < C$"))+ labs(title="1 tail t-test", x=TeX("standard deviations from $\\mu$"), y="") + theme(plot.title = element_text(hjust = 0.5))
+twoT <-ggplot(data.frame(x = c(-4, 4)), aes(x = x)) + stat_function(fun=dnorm) + stat_function(fun=dnorm, xlim=c(1.96, 4), geom="area", fill="blue") + stat_function(fun=dnorm, xlim=c(-4, -1.96), geom="area", fill="blue") + annotate("text", x=-2.5, y=0.1, label=TeX("$Z_{\\frac{\\alpha}{2}}$=2.5%(-1.96)")) + annotate("text", x=2.5, y=0.1, label=TeX("$Z_{1-\\frac{\\alpha}{2}}=97.5%(1.96)")) + annotate("text", x=-0, y=0.2, label=TeX("$\\alpha = P(\\bar{X} \\neq C; H_{o})=\\frac{0.05}{2}= 0.025 & 0.975$")) + labs(title=TeX("$H_{\\alpha}= \\mu \\neq \\mu_{o}$ then $Z_{1-\\frac{\\alpha}{2}} < Z < Z_{\\frac{\\alpha}{2}}$ then reject $H_o}"), x=TeX("standard deviations from $\\mu$"), y="") + theme(plot.title = element_text(hjust = 0.5))
+grid.arrange(oneT, twoT, nrow=1)
+``` 
+
+
+**if $\mu \ge C$ (or $\mu \le C$), then only 5% chance a random draw from distribution is larger than C (or less than C)** 
+
+**if observed mean fell in shaded red/green area, then reject the true $H_{o}: \mu=\mu_{o}$ with probability of 5% **
+
+
++ general rule of rejection($H_{o}$): $\frac{(\overline{X}-\mu_{o})\sqrt{n}}{s} > Z_{1-\alpha}$
+
++ with small $n$ then calc t rather than Z
+    
+    + $t=\frac{\overline{X}-\mu_{Ho}}{\frac{s}{\sqrt{n}}}$
+    
+    + $\alpha = qt(0.95, df)$
+    
+    + $\overline{X}=\frac{t * sd(\mu_{y}-\mu_{x})}{\sqrt{n}}$
+    
+    + t-statistic indicated the number of estimated std error btw $H_{\alpha}$ and $H_{o}$ means
+    
+    + one sided t test: $t > \alpha$ reject $H_{o}$ or $t < \alpha$ fail to reject $H_{o}$
+    
+    + 2 sided t test: $H_{\alpha}: \mu \ne \mu_{o}$, reject $H_{o}$ if qt(0.975, df) < t < qt(0.025, df)
+    
+    + t-test in R: 
+    
+        + Rcode: t.test(V2-V1) OR t.test(V2, V1, paired=TRUE), print: t/df/p-value/95% CI and sample estimate mean of $\overline{X}$
+        
+        + with CI, if not contain 0 ($\mu_{o}$) then can safely reject hypothesis (or making Type I error), if contail 0, then fail to reject $H_{o}$
+
+P values
+--------
+
+**p-value (under the null hypothesis) states how extreme t-values is towards the alternative hypothesis based on observed data. Its also the smallest alpha value at which to reject the $H_{o}$** 
+
++ Rcode: qt(q=quantile, df=df, lower,tail=T/F) & pnorm(q=quantile, lower.tail=T/F)
+
+    + **lower.tail=FALSE: $H_{\alpha}: \mu > \mu_{o}$ ($\overline{X} > quantile$)**
+    
+    + **lower.tail=TRUE: $H_{\alpha}: \mu < \mu_{o}$ ($\overline{X} \le quantile$)**
+    
+    + when value less than 0.05 --> significant (if $H_{o}$ true then see large t-stat at 1%)
+
++ p-value in 2-sided test 
+
+    + when have 2 possible outcomes, must calculate p-values for $H_{\alpha}: \mu > \mu_{o}$ and $H_{\alpha}: \mu < \mu_{o}$ at $\alpha = 0.05$, then multiply the smaller of the two by 2 which then is the official p-value
+    
+    + pbinom(x, size=n, prob=p, lower.tail=TRUE)=a
+    
+    + pbinom(x, size=n, prob=p, lower.tail=FALSE)=b
+    
+    + 2*(a or b)=p-value
+    
++ p-value in poisson distribution
+    
+    + $H_{o}: \lambda = \alpha * t$ and  $H_{\alpha}: \lambda > \alpha$
+    
+    + $\alpha$ = rate (benchmark), x= less/greater (TRUE/FALSE) than variable want to see for specified rate
+    
+    + Rcode: ppois(x, lambda=rate x t, lower.tail=T/F) --> p-value
+    
+    
+Power
+----
+
++ type II error: accept false $H_{o}$
+
++ $\beta$ = prob of Type II error 
+
++ 1-$\beta$ = prob of rejecting false $H_{o}$ aka power
+
++ power is the prob $\mu > Z_{1-\alpha}$ 
+
++ when thinking of the 2 different hypothesis as distributions: $H_{o}: \overline{X} \sim N (\mu_{o}, \frac{\sigma^2}{n})$ and $H_{\alpha}: \overline{X} \sim N (\mu_{\alpha}, \frac{\sigma^2}{n})$
+    
+    + power determine how much of $H_{\alpha}$ distribution is the right of $Z_{1-\alpha}$ in $H_{o}$
+    
+** the further to the right, the greater the $effect size=\frac{\Delta}{\sigma}$ when $\Delta=\mu_{\alpha}-\mu{o}$**
+    
++ good to know: 
+
+    + $\uparrow (\mu_{\alpha}-\mu{o}) \Rightarrow \uparrow(1-\beta)$ when $H_{\alpha}: \mu > \mu_{o}$
+
+    + $\downarrow(\mu_{\alpha}-\mu_{o}) \Rightarrow (1-\beta)=\alpha$
+
+    + $\uparrow \mu_{\alpha}$ & $n \Rightarrow \uparrow (1-\beta)$
+    
+    + $\uparrow \sigma  \Rightarrow \downarrow (1-\beta)$
+    
+    + $\uparrow \alpha \Rightarrow \uparrow (1-\beta)$
+    
++ Rcode: pnorm(q=$\mu_{o}$ + qnorm(0.95), mean=$\mu_{\alpha}$, lower.tail=T/F) $\Rightarrow$ power(%)
+
++ power (%) indicates the probability (%) of rejecting $H_{o}$ when the true value of $\mu$ is $\mu_{\alpha}$
+
++ if $H_{\alpha}: \mu \ne \mu_{o}$ then use qnorm(0.975)(FALSE) or qnorm(0.025)(FALSE), depending on the direction of $\mu_{\alpha}$
+
+
++ when solving for power really only need: $\frac{\sqrt{n}(\mu_{\alpha}-\mu_{o}}{\sigma}$
+
+
++ calc power with either t or Z stat: $1-\beta=P(\overline{X} > \mu_{o} + Z_{1-\alpha} (\frac{\sigma}{\sqrt{n}}))$; $1-\beta=P(\frac{\overline{X}-\mu_{o}}{\frac{s}{\sqrt{n}}} > t_{1-\alpha, df})$
+
+
++ When delta($\Delta$) positive, $H_{\alpha}: \mu > \mu_{o}$
+
+    + Rcode: power.t.test(n=n, delta=delta/sigma, sd=sigma, type="one.sample", alt="one.sided")$power
+    
+    + Rcode: power.t.test(power=1-beta, delta=delta/sigma, type="one.sample", alt="one.sided")$n 
+    
+    + Rcode: power.t.test(power=power, n=n, sd=sigma, type="one.sample", alt="one.sided")$delta
+    
+        + power and $n$ values remains the same so long as the effect size (delta/SD) remains constant    
+
+
+Multiple testing
+----------------
+
+```{r, echo=FALSE}
+df <- data.frame(Abbreviations=c("$m$", "$V$","$R$", "$\\mu_{o}$","$E(\\frac{V}{R})$", "$E(\\frac{V}{\\mu_{o}})$", "$P(V \\ge 1) < \\alpha$"), Meaning=c("number of test", "number of falsely declared significants", "number of true $H_{o}$","number of test declared significant", "false discoveries rate (FDR)", "false positive rate, simi to Type I error", "prob of at least 1 false positive being detected, aka family wise error rate (FWER)"))
+kable(df, booktabs=TRUE, escape=FALSE,  align="c") %>% kable_styling(latex_options="striped", full_width=FALSE, position="center")
+```
+
+
+**no p-value correction: $m * \alpha$ = number of anticipated false positives**
+
+Multi test correction (independent tests): 
+    
+* Bonferroni Correction: 
+    
+    + control FWER
+    
+    + calc: $\alpha_{FWER}=\frac{\alpha}{m}$
+    
+    + only accept: $p < \alpha_{FWER}$
+    
+* Benjamini-Hochberg (BH) Method: 
+    
+    + control FDR
+    
+    + p-value compared to a value dependeing on its ranking
+    
+    + set FDR at $\alpha$ --> calc p-values --> order from smallest to largest ($i$) --> result significant when $p_{i} \le \frac{\alpha * i}{m}$
+    
+* adjust p-value approach: 
+
+    + check amount of false positives in R: sum(pValueVector < 0.05)
+    
+    + adjusting pvalue in R: p.adjust(pValueVector, method="bonferroni/BH")
+    
+Resampling
+----------
+
+1) Bootstraping (non-parametric): 
+
+    + use observed data to construct estimated population distribution using randm sampling with replacement, then use distribution to estimate stat distribution 
+    
+    + applifying original observed data into a matrix: 
+        
+        + n <- length(vector)
+        
+        + B <- bootstrap#
+        
+        + sam <- sample(vector, n*B, replace=TRUE)
+        
+        + resampled <- matrix(sam, B, n)
+        
+    + using matrix to create estimated stat of population: 
+    
+        + meds <- apply(resampled, 1, median)
+        
+        + sd(meds)
+        
+        + quantile(meds, c(0.025, 0.975)) --> CI
+        
+        + Bootstrap package in R by broom
+        
+2) Permutation testing: 
+
+    + to determine if data stats are independent of its group labels via sampling and permutation
+    
+    + Rcode: 
+    
+        + target <- vector w/data points of interest of multiple groups 
+        
+        + group <- vector w/ group labels of all groups of interest 
+        
+        + testStat <- function(w, g) mean(w[g=="X"]) - mean(g[=="Y"]  
+        
+            + can use another stat rathern than mean
+    
+        + observedStat <- testStat(target, group) 
+        
+        + permutations <- sapply(1:#maxTimesDesire, function(i) testStat(target, sample(group)))
+        
+        + mean(permutations > obseredStat)
+        
+            + examine number of times got larger simulated stat compared to observed stat
+            
+            + if "0" then p-value=0, so data was independent of group label 
+    
+        
+    
+    
+
+
+
+
+
+
+
+    
+    
+    
+
+
+
+    
+
