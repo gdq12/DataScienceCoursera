@@ -1,4 +1,4 @@
-These are the exact instructions for the first programming assignment for when the course was taken in July 2019.
+These are the exact instructions provided by the instructor for the first programming assignment for when the course was taken in July 2019.
 
 Introduction
 ------------
