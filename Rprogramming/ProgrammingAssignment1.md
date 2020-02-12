@@ -48,3 +48,18 @@ Write a function that reads a directory full of files and reports the number of 
 should return a data frame where the first column is the name of the file and the second column is the number of complete cases. A
 prototype of this function follows: 
 
+![image2](https://user-images.githubusercontent.com/52377705/74315814-8a4df300-4d78-11ea-8f98-340b7b6d7338.png)
+
+You can see some example output from this function below. The function that you write should be able to match this output. Please save
+your code to a file named complete.R. To run the submit script for this part, make sure your working directory has the file complete.R in
+it.  [example here](https://d3c33hcgiwev3.cloudfront.net/_3b0da118473bfa0845efddcbe29cc336_complete-demo.html?Expires=1581638400&Signature=F7e0dMC5Dg6Wc35qGkzRcsVWmzugeqtJOgNlHRIMwo65NX1Ni9DDzOzKkGe-3zviRQPoEHOkfeGYPRSCV9HxIQzjHM3SPNHb1IW5EjQfwHwOtvHqlBGbRKwLgbYRpu5uZs8S6PP7HuMaI1BLmlJWjBz6~hv4tBuIAcIhpHNY7sI_&Key-Pair-Id=APKAJLTNE6QMUY6HBC5A)
+
+Part 3
+------
+
+Write a function that takes a directory of data files and a threshold for complete cases and calculates the correlation between sulfate
+and nitrate for monitor locations where the number of completely observed cases (on all variables) is greater than the threshold. The
+function should return a vector of correlations for the monitors that meet the threshold requirement. If no monitors meet the threshold
+requirement, then the function should return a numeric vector of length 0. A prototype of this function follows: 
+
+
