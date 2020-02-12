@@ -37,3 +37,14 @@ reads that monitors' particulate matter data from the directory specified in the
 pollutant across all of the monitors, ignoring any missing values coded as NA. A prototype of the function is as follows:
 
 ![image1](https://user-images.githubusercontent.com/52377705/74315606-157ab900-4d78-11ea-8b1a-6f2192106a6d.png)
+
+You can see some example output from this function below. The function that you write should be able to match this output. Please save
+your code to a file named pollutantmean.R. [example here](https://d3c33hcgiwev3.cloudfront.net/_3b0da118473bfa0845efddcbe29cc336_pollutantmean-demo.html?Expires=1581638400&Signature=aGkUKCVaVzNME2Uy5yUiMr8Dxz2uH55g6xy1nn1BrQpgfBCSRvWiKe9WdtENZ2bJg3mT8t967mTkdq~UjbXpFmNHI~nHXj~hceAXAO89PgJJ1f2MC9vzhtEEwIuWNTZ9qjieudkHBXVzcr-2roU6XFtQNwKqEWkJ4YfjeQExqgI_&Key-Pair-Id=APKAJLTNE6QMUY6HBC5A)
+
+Part 2
+------
+
+Write a function that reads a directory full of files and reports the number of completely observed cases in each data file. The function
+should return a data frame where the first column is the name of the file and the second column is the number of complete cases. A
+prototype of this function follows: 
+
