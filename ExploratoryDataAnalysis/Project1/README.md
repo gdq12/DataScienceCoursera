@@ -109,4 +109,20 @@ When you are finished with the assignment, push your git repository to GitHub so
 
 The four plots that you will need to construct are shown below.
 
+Plot 1
+
+![Image1](https://user-images.githubusercontent.com/52377705/74322400-2b8e7680-4d84-11ea-8b9a-94f55217da4c.png)
+
+Plot2
+
+![Image2](https://user-images.githubusercontent.com/52377705/74322404-2cbfa380-4d84-11ea-81d0-c502a660be3b.png)
+
+Plot 3
+
+![Image3](https://user-images.githubusercontent.com/52377705/74322413-2f21fd80-4d84-11ea-9c1c-899c1e636685.png)
+
+Plot 4
+
+![Image4](https://user-images.githubusercontent.com/52377705/74322414-30532a80-4d84-11ea-9cec-02f99fb81aa7.png)
+
 
