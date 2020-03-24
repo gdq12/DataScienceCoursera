@@ -1,0 +1,116 @@
+---
+title: "Miles per gallon in automatic vs manual cars"
+author: "Gloria Q"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Summary
+-------
+
+The principle objective of this assignment is to explore the relationship between a set of variables and miles per gallon (mpg) using the mtcars data set for a fictional assignment for *Motor Trend* magazine. The principle questions to answer are: 1) determine if automatic or manual transmission is better for mpg and 2) quantify the difference between manual and automatic transmission. Initial analysis determined that manual car tranmission has a better mpg compared to automatic cars. Further multivariable analysis and anova testing demonstrated that cylinder size and car weight further impacted mpg. 
+
+Exploratory Analysis
+--------------------
+
+**Basic inspection of mtcars data frame can be found in the appendix**
+
+1. Examine how variables interact with each other: 
+
+```{r idVars, echo=T, message=F}
+#upload necessary packages and data, conduct t-test
+library(datasets); data(mtcars); library(ggplot2); library(GGally); library(gridExtra); 
+library(dplyr); library(car)
+#change cyl and am to factors
+mtcars <- mtcars %>% mutate(am=as.factor(if_else(mtcars$am==0, "auto", "manual")),
+cyl=as.factor(mtcars$cyl))
+#calc standard deviation of variance influence factor (VIF) of each variable against mpg
+fit=lm(mpg ~ ., data=mtcars); sqrt(vif(fit))[,1]
+```
+
+These results indicate that cyl, disp, hp and wt coefficients vary the greatest amount of times when correlated to the other variables compared to when they are orthogonal. Next step is therefore to visually display their relationship with mpg and transmission as a factor. (**graph in appendix**)
+
+The graph (appendix) indicates a decrease in mpg with increase in cyl, disp, hp, wt in varying degrees. A regression analysis can further quantify the data behavior. 
+
+
+Variable Ananlysis
+------------------
+
+1. Determine difference in mpg between auto and manual cars
+
+```{r 1Varfit, echo=T}
+fit1=summary(lm(mpg ~ am, mtcars))$coef; fit1
+```
+
+This regression fit calculated that automatic cars run on average `r fit1[1,1]` mpg, while manual cars run on average $\beta_{o}+\beta_{1}$ = `r fit1[1,1]+fit1[2,1]` mpg. For hypothesis testing, where $H_{o}: \mu_{manual}=\mu_{auto}$ and $H_{\alpha}: \mu_{auto}\neq\mu_{manual}$, the p-value is `r fit1[2,4]`, therefore the null hypothesis can be rejected. Without considering other variables, this analysis states that manual cars have a better mpg.
+
+2. Model selection based on pre-determined significant variables 
+
+Based on previously identified principle variables that impact mpg, will now examine nested models to determine which variable contributes best model between mpg and am. 
+
+```{r modelNesting, echo=T}
+#build nesting models and running ANOVA
+fit2=lm(mpg ~ am, mtcars); fit3=update(fit2, mpg ~ am + cyl); fit4=update(fit2, 
+mpg ~ am + cyl + wt); fit5=update(fit2, mpg ~ am + cyl + wt + disp); 
+fit6=update(fit2, mpg ~ am + cyl + wt + disp + hp); anova(fit2, fit3, fit4, fit5, fit6)
+```
+
+For this anova test, each p-value indicates whether the new added variable is significant to the model or not (aka above zero or not). These results indicate the model fit3(am+cyl) and fit4(am+cyl+wt+am) have the greatest impact on mpg. 
+
+Conclusion
+----------
+
+Linear regression of just mpg and am indicate that mpg between automatic and manual cars are statistically different, with manual cars having a better mpg compared to automatic. When examining the variance of coefficients for all variables, cyl/disp/wt/hp have the greatest influence on mpg. When comparing nested models via ANOVA, models that included am/cyl/wt had the greatest impact on mpg. To check regression assumptions, diagnostic plotting was conducted to compare residuals and predicted values from the ANOVA test (**see appendix**). When examining fit residuals vs predicted values, the density distribution about 0 was slightly better in fit3(mpg~am+cyl), further confirming this to be the optimal regression model. 
+
+Appendix
+--------
+
+1. mtcars data frame structure:
+
+From ?mtcars, following variable description: 
+
+- **mpg**=miles per gallon (US)
+- **cyl**=number of cylinders
+- **disp**=displacement(cu.in.)
+- **hp**=gross horsepower
+- **drat**=rear axle ratio
+- **wt**=weight(1000 Ilbs)
+- **qsec**=$\frac{1}{4}$ mile time
+- **vs**=engine(0=v-shaped, 1=straight)
+- **am**=transmission(0=auto, 1=manual)
+- **gear**=num of forward gears
+- **carb**=num of carburetors
+
+```{r dfStruct, echo=T}
+#look at mtcars data frame 
+str(mtcars)
+```
+
+
+2. Exploratory graph
+
+```{r ExplorGraphs, echo=T}
+#build graphs
+ggduo(mtcars, columnsX=c(9,2:4,6), columnsY=1, types = list(continuous =
+"smooth_lm"), mapping = aes(color = am), legend = c(1,4), xlab="Independent 
+Variables", ylab="Dependent Variable", title="Impacted of highly correlated 
+variables on mpg") + theme(legend.position = "bottom")
+```
+
+3. diagnostic regression plot: 
+
+```{r diagReg, echo=T}
+#calc residuals and predicted values 
+resid3=residuals(fit3);resid4=residuals(fit4);pred3=predict(fit3);pred4=predict(fit4);
+#building plots
+gResid3=ggplot(data=data.frame(resid3), aes(x=resid3)) + geom_density(); 
+gResid4=ggplot(data=data.frame(resid4), aes(x=resid4)) + geom_density();
+gFit3=ggplot(data=data.frame(resid3), aes(x=pred3,y=resid3)) + geom_jitter() + 
+geom_hline(yintercept=0); 
+gFit4=ggplot(data=data.frame(resid4), aes(x=pred4,y=resid4)) + geom_jitter() +
+geom_hline(yintercept=0); 
+grid.arrange(gResid3,gResid4,gFit3,gFit4,nrow=2)
+```
