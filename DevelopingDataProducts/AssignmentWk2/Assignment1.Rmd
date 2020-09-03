@@ -1,0 +1,65 @@
+---
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F)
+```
+
+```{r libraries,  message=F, warning=F}
+library("lubridate")
+library("leaflet")
+library("htmltools")
+```
+
+```{r date,}
+date=format(today(), "%B %d, %Y")
+```
+
+<font size="10">`r date`</font> 
+
+```{r map}
+df=read.csv('https://s3-api.us-geo.objectstorage.softlayer.net/cf-courses-data/CognitiveClass/DV0101EN/labs/Data_Files/Police_Department_Incidents_-_Previous_Year__2016_.csv')
+
+colnames(df)=c("IncidntNum", "Category", "Descript", "DayOfWeek", "Date", "Time", "PdDistrict", "Resolution", "Address", "lng", "lat", "Location", "PdId")
+
+df1=df[sample(nrow(df), 1000),]
+
+getColor <- function(df1) {
+  sapply(df1$DayOfWeek, function(DayOfWeek) {
+  if(DayOfWeek == "Friday") {
+    "green"
+  } else if(DayOfWeek == "Monday") {
+    "orange"
+  } else if(DayOfWeek == "Saturday") {
+    "red"
+  } else if(DayOfWeek == "Sunday"){
+    "blue"  
+  } else if(DayOfWeek == "Thursday"){
+    "purple"  
+  } else if(DayOfWeek == "Tuesday"){
+    "yellow" 
+  } else if(DayOfWeek == "Wednesday"){
+    "black"  
+  }})
+}
+
+icons <- awesomeIcons(
+  icon = 'ios-close',
+  iconColor = 'white',
+  library = 'ion',
+  markerColor = getColor(df1)
+)
+
+df1 %>% leaflet() %>% 
+    addTiles() %>% 
+    addAwesomeMarkers(~lng, ~lat, 
+               label=~htmlEscape(Address), 
+               clusterOptions = markerClusterOptions(),
+               icon=icons,
+               popup=paste("Category:", df1$Category, "<br>",
+                           "Polic Department District:", df1$PdDistrict)) %>%
+               addLegend(labels=c("Friday", "Monday", "Saturday", "Sunday", "Thursday", "Tuesday",
+                                  "Wednesday"), 
+                         colors=c("green", "orange", "red", "blue", "purple", "yellow", "black"))
+```
