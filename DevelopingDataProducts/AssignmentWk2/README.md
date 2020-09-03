@@ -1,4 +1,4 @@
-These are the exact instructions provided by course instructor when the project was completed in September 2020.
+These are the exact instructions provided by course instructor when the project was completed in September 2020. The webpage result for this assignment can be found [here](https://gdq12.github.io/DataScienceCoursera/DevelopingDataProducts/AssignmentWk2/Assignment1.html), which was created via Github Pages. 
 
 ## Instructions
 
