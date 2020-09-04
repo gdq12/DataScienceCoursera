@@ -1,0 +1,36 @@
+---
+title: "Week 3 Assignment"
+author: "Gloria"
+date: "9/4/2020"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## {.flexbox .vcenter}
+
+```{r librarues, message=F}
+library(dplyr)
+library(tidyr)
+library(lubridate)
+library(plotly)
+```
+
+```{r data}
+data(airquality)
+
+airquality=airquality %>% select(Ozone, Solar.R, Wind, Temp, Month, Day) %>% mutate(Time=paste(Month, "-", Day)) %>% mutate(Time=parse_date_time(Time, orders="m-d")) %>% select(Ozone, Solar.R, Wind, Temp, Time) %>% gather("airquality", "value", -Time)
+```
+
+```{r graph, warning=F}
+fig=plot_ly(airquality, x=~Time, y=~value, color=~airquality, mode='line', type='scatter')
+fig=fig %>% layout(title="Daily Airquality in New York May to September 1973") %>% rangeslider(list(type="date"))
+fig
+```
+
+## {.flexbox .vcenter}
+
+That's all for now folks :)
+
