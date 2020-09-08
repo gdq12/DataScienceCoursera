@@ -1,0 +1,76 @@
+---
+title: "Model Evaluation"
+author: "Gloria"
+date: "9/6/2020"
+output: 
+    md_document:
+        variant: markdown_github
+    html_document: default  
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding,
+  output_dir = ".", output_format = "all") })      
+---
+
+## Summary 
+
+The purpose is to take a brief look at data from [kaggle](https://www.kaggle.com/aungpyaeap/supermarket-sales), supermarket sales from 3 locations in Myanmar, and build a regression model to later be implemented ina shiny app. 
+
+## Getting the Data
+
+```{r, message=F}
+library(dplyr)
+library(lubridate)
+library(car)
+```
+
+```{r, comment=''}
+supermarket=read.csv('supermarket_sales.csv')
+
+#supermarket=supermarket %>% subset(select=-c(gross.margin.percentage, gross.income)) %>% mutate(Time2=paste(Date, Time)) %>% mutate(Time2=parse_date_time(Time2, orders="m/d/Y H:M")) %>% subset(select=-c(Date, Time))
+
+supermarket=supermarket %>% subset(select=-c(gross.margin.percentage, gross.income)) %>% mutate(Date2=paste(Date, Time)) %>% mutate(Date2=parse_date_time(Date2, orders="m/d/Y H:M")) %>% mutate(Time2=hm(Time)) %>% subset(select=-c(Date, Time))
+
+str(supermarket)
+```
+
+## Feature Selection
+
+1. Must select features that are independent of all others. Current features:
+
+```{r, echo=F, comment=''}
+names(supermarket)
+```
+
+Here, Total will be identified as the dependent variable ($y$), and the following will be considered as independent variables ($x$): Gender, City, Product.line, Customer.type, Unit.price, Quantity, Payment, Rating. 
+
+2. Verify that there isn't linear dependence between the features:
+
+```{r, comment=''}
+fit=lm(Total ~ factor(Gender) + City + Product.line + Customer.type + Unit.price + Quantity + Payment + Rating, data=supermarket)
+
+alias(fit)
+```
+
+No complete or partial dependence was report, therefor no linear dependence detected among the features. 
+
+3. Examine each feature variability when correlated to the other features compared to when they are orthogonal: 
+
+```{r, comment=''}
+sqrt(vif(fit))[,1]
+```
+
+There isn't much variability in the results, but out of all of them, Product.line showed the greatest variability. 
+
+## Model Selection 
+
+Run ANOVA to determine which combination of features that contributes to the best model:
+
+```{r, comment=''}
+fit=lm(Total ~ Gender, supermarket)
+fit1=update(fit, Total ~ Gender + City+ Customer.type + Rating)
+fit2=update(fit1, Total ~ Gender + City + Customer.type + Rating + Unit.price + Quantity + Payment)
+fit3=update(fit2, Total ~ Gender + City + Customer.type + Rating + Unit.price + Quantity + Payment + Time2)
+anova(fit, fit1, fit2, fit3)
+```
+
+Based on the p-value for each nested model, fit2 model (Gender + City + Customer.type + Rating + Unit.price + Quantity + Payment) has the greatest impact on Total. 
